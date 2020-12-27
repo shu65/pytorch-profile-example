@@ -77,7 +77,7 @@ def main():
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     model.train()
-    with profiler.profile(record_shapes=False, profile_memory=True, use_cuda=True) as prof:
+    with profiler.profile(profile_memory=True, use_cuda=True) as prof:
         for batch_idx, (data, target) in enumerate(train_loader):
             if batch_idx > args.iterations:
                 break
