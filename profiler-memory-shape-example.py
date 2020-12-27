@@ -77,25 +77,24 @@ def main():
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     model.train()
-    #with profiler.profile(record_shapes=True, use_cuda=True) as prof:
-    with torch.cuda.profiler.profile():
-        with torch.autograd.profiler.emit_nvtx(enabled=True, record_shapes=False):
-            for batch_idx, (data, target) in enumerate(train_loader):
-                if batch_idx > args.iterations:
-                    break
-                with profiler.record_function("load_data"):
-                    data, target = data.to(device), target.to(device)
-                with profiler.record_function("zero_grad"):
-                    optimizer.zero_grad()
-                with profiler.record_function("forward"):
-                    output = model(data)
-                    loss = F.nll_loss(output, target)
-                with profiler.record_function("backward"):
-                    loss.backward()
-                with profiler.record_function("optimize"):
-                    optimizer.step()
-            
-    #print(prof.key_averages(group_by_input_shape=True).table(sort_by="cpu_time_total", row_limit=10))
+    with profiler.profile(record_shapes=True, profile_memory=True, use_cuda=True) as prof:
+        for batch_idx, (data, target) in enumerate(train_loader):
+            if batch_idx > args.iterations:
+                break
+            with profiler.record_function("load_data"):
+                data, target = data.to(device), target.to(device)
+            with profiler.record_function("zero_grad"):
+                optimizer.zero_grad()
+            with profiler.record_function("forward"):
+                output = model(data)
+                loss = F.nll_loss(output, target)
+            with profiler.record_function("backward"):
+                loss.backward()
+            with profiler.record_function("optimize"):
+                optimizer.step()
+
+    print("train end")
+    print(prof.key_averages(group_by_input_shape=True).table(sort_by="cuda_memory_usage", row_limit=10))
     
 
 if __name__ == '__main__':

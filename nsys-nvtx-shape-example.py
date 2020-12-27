@@ -77,9 +77,8 @@ def main():
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     model.train()
-    #with profiler.profile(record_shapes=True, use_cuda=True) as prof:
     with torch.cuda.profiler.profile():
-        with torch.autograd.profiler.emit_nvtx(enabled=True, record_shapes=False):
+        with torch.autograd.profiler.emit_nvtx(enabled=True, record_shapes=True):
             for batch_idx, (data, target) in enumerate(train_loader):
                 if batch_idx > args.iterations:
                     break
@@ -94,8 +93,8 @@ def main():
                     loss.backward()
                 with profiler.record_function("optimize"):
                     optimizer.step()
-            
-    #print(prof.key_averages(group_by_input_shape=True).table(sort_by="cpu_time_total", row_limit=10))
+
+    print("train end")
     
 
 if __name__ == '__main__':
